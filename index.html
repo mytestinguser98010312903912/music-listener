@@ -75,16 +75,25 @@
         const currentTrackName = document.getElementById('current-track-name');
 
         // --- 1. CONFIGURE YOUR PLAYLIST HERE ---
-        // Assume MP3 files are in a folder named 'audio'
-        // Example path: https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/audio/track_name.mp3
+        // Base path for the audio files. Assumes files are in the 'audio/' folder.
         const BASE_PATH = 'audio/'; 
         
-        // **IMPORTANT:** List your filenames here exactly as they are in your repo.
+        // YOUR INTEGRATED PLAYLIST:
         let playlist = [
-            'my_song_one.mp3',
-            'another_track.mp3',
-            'favorite_jam.mp3',
-            'final_piece.mp3'
+            'Bloxxin\' What\'s Not Yours.mp3',
+            'Juice WRLD - Empty Out Your Pockets (Official Fortnite Video) 4.mp3',
+            'Juice WRLD - Lucid Dreams (Official Music Video) 4.mp3',
+            'Marmalade Dream (BOKSED Edit).mp3',
+            'SODA STREET.mp3',
+            'Stay with me remix (soft bass boost) sped up.mp3',
+            'Stay with me remix (soft bass boost).mp3',
+            'boksed - Grew.mp3',
+            'boxed - skull fairy.mp3',
+            'caffeine rush.mp3',
+            'dokodemohitori.wav.mp3',
+            'look! a turtle.. nevermind..mp3',
+            'myinternetlife.mp3.mp3',
+            'nostalgiaisntreal.wav.mp3'
         ];
         
         // --- PLAYER STATE ---
@@ -154,7 +163,7 @@
                 playlist = [...originalPlaylist];
             }
             
-            // Find the index of the track that was *just* playing in the new (shuffled or un-shuffled) list
+            // Find the index of the track that was *just* playing in the new list
             currentTrackIndex = playlist.indexOf(currentSourceFilename);
 
             // If the player was playing, continue playing from the same track, but from the new index
@@ -171,7 +180,6 @@
         loopBtn.addEventListener('click', () => {
             isLooping = !isLooping;
             loopBtn.textContent = `Loop: ${isLooping ? 'ON' : 'OFF'}`;
-            // The logic for playlist looping is handled in playNextTrack()
         });
 
         // --- EVENT LISTENERS ---
