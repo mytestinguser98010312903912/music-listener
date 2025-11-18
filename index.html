@@ -78,16 +78,17 @@
         // Base path for the audio files. Assumes files are in the 'audio/' folder.
         const BASE_PATH = 'audio/'; 
         
-        // **UPDATED PLAYLIST** with specific character fixes for the two non-working tracks:
+        // **FINAL UPDATED PLAYLIST** with verified filenames:
         let playlist = [
             'Bloxxin\' What\'s Not Yours.mp3',
             'Juice WRLD - Empty Out Your Pockets (Official Fortnite Video) 4.mp3',
             'Juice WRLD - Lucid Dreams (Official Music Video) 4.mp3',
             'Marmalade Dream (BOKSED Edit).mp3',
             'SODA STREET.mp3',
-            // FIXED: Using literal characters (e.g., non-standard space) for exact match
+            // FIXED TRACKS - These lines use the exact filenames you provided:
             'Stay with me remix  (soft bass boost) sped up.mp3',
             'Stay with me remix  (soft bass boost).mp3',
+            // END FIXED TRACKS
             'boksed - Grew.mp3',
             'boxed - skull fairy.mp3',
             'caffeine rush.mp3',
@@ -98,7 +99,7 @@
         ];
         
         // --- PLAYER STATE ---
-        let originalPlaylist = [...playlist]; // Save the original order
+        let originalPlaylist = [...playlist]; 
         let currentTrackIndex = 0;
         let isShuffling = false;
         let isLooping = false;
@@ -116,7 +117,6 @@
             
             audio.load();
             audio.play().catch(e => {
-                // Handle autoplay block, common in browsers
                 console.log('Playback requires user interaction or was blocked:', e);
             });
         }
@@ -127,13 +127,10 @@
             const nextIndex = currentTrackIndex + 1;
             
             if (nextIndex < playlist.length) {
-                // Play the next track in the list
                 loadTrack(nextIndex);
             } else if (isLooping) {
-                // If looping is on, go back to the first track (index 0)
                 loadTrack(0);
             } else {
-                // If the end is reached and not looping, stop
                 audio.pause();
                 audio.currentTime = 0;
                 currentTrackName.textContent = playlist[currentTrackIndex] + ' (Playlist Finished)';
@@ -143,7 +140,6 @@
         // --- SHUFFLE LOGIC ---
 
         function shuffleArray(array) {
-            // Fisher-Yates shuffle
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
@@ -157,21 +153,16 @@
             const currentSourceFilename = playlist[currentTrackIndex];
 
             if (isShuffling) {
-                // Shuffle the playlist array
                 shuffleArray(playlist);
             } else {
-                // Revert to original order
                 playlist = [...originalPlaylist];
             }
             
-            // Find the index of the track that was *just* playing in the new list
             currentTrackIndex = playlist.indexOf(currentSourceFilename);
 
-            // If the player was playing, continue playing from the same track, but from the new index
             if (!audio.paused) {
                 loadTrack(currentTrackIndex);
             } else {
-                // Just update the display to show the current track name in the new context
                 currentTrackName.textContent = playlist[currentTrackIndex];
             }
         });
