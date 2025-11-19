@@ -28,11 +28,11 @@
             width: 100%;
             max-width: 300px;
             height: auto;
-            min-height: 100px; /* Ensure space for placeholder while loading */
+            min-height: 100px; 
             border-radius: 5px;
             margin-bottom: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            object-fit: cover; /* Ensures image covers the area nicely */
+            object-fit: cover; 
         }
         #current-track-name {
             display: block;
@@ -82,7 +82,8 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             text-align: left;
-            display: none; /* Hidden by default */
+            /* >>>>>>>>>>> TEMPORARY DEBUG CHANGE <<<<<<<<< */
+            display: block !important; /* FORCED VISIBILITY */
         }
         #playlist-list li {
             padding: 10px;
@@ -119,7 +120,6 @@
     </div>
 
     <script>
-        // Use 'window.jsmediatags' for global access after the CDN script loads
         const jsmediatags = window.jsmediatags; 
 
         const audio = document.getElementById('audio-player');
@@ -135,8 +135,6 @@
         const BASE_PATH = 'audio/'; 
         const PLACEHOLDER_URL = 'https://play-lh.googleusercontent.com/CQri0N-BiyrACHpHPPtITg3TMV5-bZNbAuhjrg-Zpc_mw6tIWZJFPmT8Yr5r4R-xbA'; 
         
-        // **SIMPLIFIED PLAYLIST STRUCTURE** (Only track names needed)
-        // Image reading is now dynamic via jsmediatags
         let rawPlaylist = [
             { track: 'Bloxxin\' What\'s Not Yours.mp3' },
             { track: 'Juice WRLD - Empty Out Your Pockets (Official Fortnite Video) 4.mp3' },
@@ -190,6 +188,9 @@
         function setAlbumArtFromID3(url) {
             albumArt.src = PLACEHOLDER_URL; // Set placeholder immediately while loading
             
+            // NOTE: If this console log doesn't show the correct file URL, the BASE_PATH is wrong.
+            console.log("Attempting to read ID3 from:", url); 
+
             jsmediatags.read(url, {
                 onSuccess: function(tag) {
                     const tags = tag.tags;
@@ -199,13 +200,11 @@
                         // Create a data URL from the binary image data
                         albumArt.src = `data:${mimeType};base64,${btoa(base64String)}`;
                     } else {
-                        // Use placeholder if tags were read, but no picture found
                         albumArt.src = PLACEHOLDER_URL;
                     }
                 },
                 onError: function(error) {
-                    // Use placeholder if reading ID3 tags failed entirely
-                    console.error("Error reading ID3 tags:", error);
+                    console.error("Error reading ID3 tags (Likely file access issue):", error);
                     albumArt.src = PLACEHOLDER_URL;
                 }
             });
@@ -222,7 +221,7 @@
             audio.src = trackURL; 
             currentTrackName.textContent = currentItem.track;
             
-            // 2. Set Album Art (using ID3 reader)
+            // 2. Set Album Art 
             setAlbumArtFromID3(trackURL);
             
             // 3. Update UI
@@ -251,7 +250,7 @@
             }
         }
 
-        // --- SHUFFLE LOGIC (remains the same but uses .track for comparison) ---
+        // --- SHUFFLE LOGIC (omitted for brevity, assume correct) ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -282,6 +281,7 @@
             }
         });
 
+
         // --- LOOP, NEXT, & EVENTS LOGIC ---
 
         loopBtn.addEventListener('click', () => {
@@ -299,7 +299,10 @@
 
         playlistButton.addEventListener('click', () => {
             const isVisible = playlistList.style.display !== 'none';
-            playlistList.style.display = isVisible ? 'none' : 'block';
+            // >>>>>>>>>>> DEBUG CHANGE <<<<<<<<<
+            // Revert the temporary display change after debugging if needed
+            // playlistList.style.display = isVisible ? 'none' : 'block';
+            playlistList.style.display = 'block'; // Keep it simple for now
             playlistButton.textContent = isVisible ? 'Show Playlist' : 'Hide Playlist';
         });
 
