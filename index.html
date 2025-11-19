@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>GitHub Hosted Audio Player</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
+
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -20,6 +23,16 @@
             max-width: 400px;
             width: 100%;
             text-align: center;
+        }
+        #album-art {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            min-height: 100px; /* Ensure space for placeholder while loading */
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            object-fit: cover; /* Ensures image covers the area nicely */
         }
         #current-track-name {
             display: block;
@@ -51,12 +64,47 @@
         
         button:hover { opacity: 0.8; }
         button:active { opacity: 0.6; }
+
+        /* --- Playlist Styling --- */
+        #playlist-button {
+            margin-top: 20px;
+            background-color: #555;
+            color: white;
+            padding: 10px 20px;
+        }
+        #playlist-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: left;
+            display: none; /* Hidden by default */
+        }
+        #playlist-list li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95em;
+        }
+        #playlist-list li:hover {
+            background-color: #e0f7fa;
+        }
+        #playlist-list li.current-track {
+            background-color: #bbdefb;
+            font-weight: bold;
+            color: #1a237e;
+        }
     </style>
 </head>
 <body>
 
     <div id="player-container">
         <h2>My Hosted Music</h2>
+        <img id="album-art" src="" alt="Album Art" loading="lazy">
         <span id="current-track-name">Loading...</span>
         <audio id="audio-player" controls preload="auto"></audio>
 
@@ -65,57 +113,120 @@
             <button id="loop-btn">Loop: OFF</button>
             <button id="next-btn">Next</button>
         </div>
+        
+        <button id="playlist-button">Show Playlist</button>
+        <ul id="playlist-list"></ul>
     </div>
 
     <script>
+        // Use 'window.jsmediatags' for global access after the CDN script loads
+        const jsmediatags = window.jsmediatags; 
+
         const audio = document.getElementById('audio-player');
         const shuffleBtn = document.getElementById('shuffle-btn');
         const loopBtn = document.getElementById('loop-btn');
         const nextBtn = document.getElementById('next-btn');
         const currentTrackName = document.getElementById('current-track-name');
+        const albumArt = document.getElementById('album-art');
+        const playlistList = document.getElementById('playlist-list');
+        const playlistButton = document.getElementById('playlist-button');
 
-        // --- 1. CONFIGURE YOUR PLAYLIST HERE ---
-        // Base path for the audio files. Assumes files are in the 'audio/' folder.
+        // --- CONFIGURATION ---
         const BASE_PATH = 'audio/'; 
+        const PLACEHOLDER_URL = 'https://play-lh.googleusercontent.com/CQri0N-BiyrACHpHPPtITg3TMV5-bZNbAuhjrg-Zpc_mw6tIWZJFPmT8Yr5r4R-xbA'; 
         
-        // **FINAL UPDATED PLAYLIST** with simplified and verified filenames:
-        let playlist = [
-            'Bloxxin\' What\'s Not Yours.mp3',
-            'Juice WRLD - Empty Out Your Pockets (Official Fortnite Video) 4.mp3',
-            'Juice WRLD - Lucid Dreams (Official Music Video) 4.mp3',
-            'Marmalade Dream (BOKSED Edit).mp3',
-            'SODA STREET.mp3',
-            
-            // --- NEW SIMPLIFIED NAMES ---
-            'Stay with me remix.mp3',
-            'Stay with me remix sped up.mp3',
-            // --- END SIMPLIFIED NAMES ---
-            
-            'boksed - Grew.mp3',
-            'boxed - skull fairy.mp3',
-            'caffeine rush.mp3',
-            'dokodemohitori.wav.mp3',
-            'look! a turtle.. nevermind..mp3',
-            'myinternetlife.mp3.mp3',
-            'nostalgiaisntreal.wav.mp3'
+        // **SIMPLIFIED PLAYLIST STRUCTURE** (Only track names needed)
+        // Image reading is now dynamic via jsmediatags
+        let rawPlaylist = [
+            { track: 'Bloxxin\' What\'s Not Yours.mp3' },
+            { track: 'Juice WRLD - Empty Out Your Pockets (Official Fortnite Video) 4.mp3' },
+            { track: 'Juice WRLD - Lucid Dreams (Official Music Video) 4.mp3' },
+            { track: 'Marmalade Dream (BOKSED Edit).mp3' },
+            { track: 'SODA STREET.mp3' },
+            { track: 'Stay with me remix.mp3' },
+            { track: 'Stay with me remix sped up.mp3' },
+            { track: 'boksed - Grew.mp3' },
+            { track: 'boxed - skull fairy.mp3' },
+            { track: 'caffeine rush.mp3' },
+            { track: 'dokodemohitori.wav.mp3' },
+            { track: 'look! a turtle.. nevermind..mp3' },
+            { track: 'myinternetlife.mp3.mp3' },
+            { track: 'nostalgiaisntreal.wav.mp3' }
         ];
-        
+
         // --- PLAYER STATE ---
-        let originalPlaylist = [...playlist]; 
+        let playlist = [...rawPlaylist]; 
+        let originalPlaylist = [...rawPlaylist]; 
         let currentTrackIndex = 0;
         let isShuffling = false;
         let isLooping = false;
 
         // --- CORE FUNCTIONS ---
+        
+        function renderPlaylist() {
+            playlistList.innerHTML = ''; 
+            playlist.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.textContent = item.track;
+                li.dataset.index = index;
+                
+                if (index === currentTrackIndex) {
+                    li.classList.add('current-track');
+                }
+                
+                li.addEventListener('click', () => {
+                    loadTrack(index);
+                    // Keep the playlist visible if the screen is large
+                    if (window.innerWidth <= 600) { 
+                         playlistList.style.display = 'none';
+                         playlistButton.textContent = 'Show Playlist';
+                    }
+                });
+                
+                playlistList.appendChild(li);
+            });
+        }
+
+        function setAlbumArtFromID3(url) {
+            albumArt.src = PLACEHOLDER_URL; // Set placeholder immediately while loading
+            
+            jsmediatags.read(url, {
+                onSuccess: function(tag) {
+                    const tags = tag.tags;
+                    if (tags.picture) {
+                        const base64String = tags.picture.data.map(byte => String.fromCharCode(byte)).join('');
+                        const mimeType = tags.picture.format;
+                        // Create a data URL from the binary image data
+                        albumArt.src = `data:${mimeType};base64,${btoa(base64String)}`;
+                    } else {
+                        // Use placeholder if tags were read, but no picture found
+                        albumArt.src = PLACEHOLDER_URL;
+                    }
+                },
+                onError: function(error) {
+                    // Use placeholder if reading ID3 tags failed entirely
+                    console.error("Error reading ID3 tags:", error);
+                    albumArt.src = PLACEHOLDER_URL;
+                }
+            });
+        }
 
         function loadTrack(index) {
             if (playlist.length === 0) return;
             
             currentTrackIndex = index;
-            const trackFilename = playlist[currentTrackIndex];
-            // Combine base path with filename for the full URL
-            audio.src = BASE_PATH + trackFilename; 
-            currentTrackName.textContent = trackFilename;
+            const currentItem = playlist[currentTrackIndex];
+            const trackURL = BASE_PATH + currentItem.track;
+            
+            // 1. Set Audio Source
+            audio.src = trackURL; 
+            currentTrackName.textContent = currentItem.track;
+            
+            // 2. Set Album Art (using ID3 reader)
+            setAlbumArtFromID3(trackURL);
+            
+            // 3. Update UI
+            renderPlaylist(); 
             
             audio.load();
             audio.play().catch(e => {
@@ -135,11 +246,12 @@
             } else {
                 audio.pause();
                 audio.currentTime = 0;
-                currentTrackName.textContent = playlist[currentTrackIndex] + ' (Playlist Finished)';
+                currentTrackName.textContent = playlist[currentTrackIndex].track + ' (Playlist Finished)';
+                renderPlaylist(); 
             }
         }
 
-        // --- SHUFFLE LOGIC ---
+        // --- SHUFFLE LOGIC (remains the same but uses .track for comparison) ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -152,7 +264,7 @@
             isShuffling = !isShuffling;
             shuffleBtn.textContent = `Shuffle: ${isShuffling ? 'ON' : 'OFF'}`;
             
-            const currentSourceFilename = playlist[currentTrackIndex];
+            const currentTrack = playlist[currentTrackIndex].track;
 
             if (isShuffling) {
                 shuffleArray(playlist);
@@ -160,23 +272,22 @@
                 playlist = [...originalPlaylist];
             }
             
-            currentTrackIndex = playlist.indexOf(currentSourceFilename);
+            currentTrackIndex = playlist.findIndex(item => item.track === currentTrack);
 
             if (!audio.paused) {
                 loadTrack(currentTrackIndex);
             } else {
-                currentTrackName.textContent = playlist[currentTrackIndex];
+                currentTrackName.textContent = playlist[currentTrackIndex].track;
+                renderPlaylist(); 
             }
         });
 
-        // --- LOOP LOGIC ---
+        // --- LOOP, NEXT, & EVENTS LOGIC ---
 
         loopBtn.addEventListener('click', () => {
             isLooping = !isLooping;
             loopBtn.textContent = `Loop: ${isLooping ? 'ON' : 'OFF'}`;
         });
-
-        // --- EVENT LISTENERS ---
 
         nextBtn.addEventListener('click', () => {
             playNextTrack();
@@ -186,11 +297,17 @@
             playNextTrack();
         });
 
+        playlistButton.addEventListener('click', () => {
+            const isVisible = playlistList.style.display !== 'none';
+            playlistList.style.display = isVisible ? 'none' : 'block';
+            playlistButton.textContent = isVisible ? 'Show Playlist' : 'Hide Playlist';
+        });
+
         // --- INITIALIZATION ---
         if (playlist.length > 0) {
             loadTrack(0);
         } else {
-            currentTrackName.textContent = 'Playlist is empty. Please check the "playlist" array.';
+            currentTrackName.textContent = 'Playlist is empty.';
         }
     </script>
 </body>
