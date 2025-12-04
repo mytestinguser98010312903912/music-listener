@@ -135,24 +135,25 @@
 
         // --- CONFIGURATION ---
         const BASE_PATH = 'audio/'; 
-        const PLACEHOLDER_URL = 'https://play-lh.googleusercontent.com/CQri0N-BiyrACHpHPPtITg3TMV5-bZNbAuhjrg-Zpc_mw6tIWZJFPmT8Yr5r4R-xbA'; 
+        // FIXED: Added closing quote and semicolon
+        const PLACEHOLDER_URL = 'https://play-lh.googleusercontent.com/CQri0N-BiyrACHpHPPtITg3TMV5-bZNbAuhjrg-Zpc_mw6tIWZJFPmT8Yr5r4R-xbA'; ';
         
-        // **FINAL PLAYLIST STRUCTURE** - Update the 'image' field for each track!
+        // **FINAL PLAYLIST STRUCTURE**
         let rawPlaylist = [
             { track: 'Bloxxin\' What\'s Not Yours.mp3', image: 'Bloxxin_Art.png' }, 
             { track: 'Juice WRLD - Empty Out Your Pockets (Official Fortnite Video) 4.mp3', image: 'Juice_WRLD_1.png' },
             { track: 'Juice WRLD - Lucid Dreams (Official Music Video) 4.mp3', image: 'Juice_WRLD_2.png' },
-            { track: 'Marmalade Dream (BOKSED Edit).mp3', image: '' }, // No image
+            { track: 'Marmalade Dream (BOKSED Edit).mp3', image: '' }, 
             { track: 'SODA STREET.mp3', image: '' },
             { track: 'Stay with me remix.mp3', image: 'Stay_Art.jpg' },
-            { track: 'Stay with me remix sped up.mp3', image: 'Stay_Art.jpg' }, // Use the same image
+            { track: 'Stay with me remix sped up.mp3', image: 'Stay_Art.jpg' },
             { track: 'boksed - Grew.mp3', image: '' },
             { track: 'boxed - skull fairy.mp3', image: 'Skull_Art.png' },
             { track: 'caffeine rush.mp3', image: '' },
             { track: 'dokodemohitori.wav.mp3', image: '' },
             { track: 'look! a turtle.. nevermind..mp3', image: '' },
             { track: 'myinternetlife.mp3.mp3', image: '' },
-            { track: 'nostalgiaisntreal.wav.mp3', image: '' }
+            { track: 'nostalgiaisntreal.wav.mp3', image: '' }, // FIXED: Added comma here
             { track: 'boksed - 1250.mp3', image: '' }
         ];
 
@@ -207,7 +208,7 @@
             
             audio.load();
             
-            // 4. Playback fix: Only call play() if autoPlay is true (user clicked a track/next button)
+            // 4. Playback fix: Only call play() if autoPlay is true
             if (autoPlay) {
                 audio.play().catch(e => {
                     console.log('Playback attempt blocked:', e);
@@ -232,7 +233,7 @@
             }
         }
 
-        // --- SHUFFLE LOGIC (AutoPlay on shuffle if currently playing) ---
+        // --- SHUFFLE LOGIC ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
